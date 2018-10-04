@@ -6,8 +6,9 @@ CONFIGFOLDER='/root/.bulwark'
 COIN_DAEMON='bulwarkd'
 COIN_CLI='bulwark-cli'
 COIN_PATH='/usr/local/bin/'
-COIN_TGZ='https://github.com/bulwark-crypto/Bulwark/releases/download/1.3.1/bulwark-1.3.1.0-linux64.tar.gz'
+COIN_TGZ='https://github.com/bulwark-crypto/Bulwark/releases/download/2.0.0/bulwark-node-2.0.0.0-linux64.tar.gz'
 COIN_ZIP=$(echo $COIN_TGZ | awk -F'/' '{print $NF}')
+BOOTSTRAP='https://github.com/bulwark-crypto/Bulwark/releases/download/2.0.0/bootstrap.dat.zip'
 COIN_NAME='Bulwark'
 COIN_PORT=52543
 RPC_PORT=52541
@@ -25,14 +26,20 @@ function download_node() {
   cd $TMP_FOLDER >/dev/null 2>&1
   wget -q $COIN_TGZ
   compile_error
-  tar xvzf $COIN_ZIP --strip 1 >/dev/null 2>&1
-  chmod +x $COIN_DAEMON $COIN_CLI
+  tar xvzf $COIN_ZIP >/dev/null 2>&1
   cp $COIN_DAEMON $COIN_CLI $COIN_PATH
-  cd ~ >/dev/null 2>&1
+  cd - >/dev/null 2>&1
   rm -rf $TMP_FOLDER >/dev/null 2>&1
   clear
 }
 
+function bootstrap() {
+  echo -e "Downloading bootstrap"
+  cd $CONFIGFOLDER >/dev/null 2>&1
+  wget -N $BOOTSTRAP >/dev/null 2>&1
+  unzip -x bootstrap.dat.zip
+  cd - >/dev/null 2>&1
+}
 
 function configure_systemd() {
   cat << EOF > /etc/systemd/system/$COIN_NAME.service
@@ -236,6 +243,7 @@ function important_information() {
 function setup_node() {
   get_ip
   create_config
+  bootstrap
   create_key
   update_config
   enable_firewall
